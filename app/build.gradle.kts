@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.packages.virtual_doctor"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.packages.virtual_doctor"
-        minSdk = 31
-        targetSdk = 33
+        minSdk = 34
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 

@@ -16,4 +16,14 @@ data class Item(
     override fun equals(other: Any?): Boolean {
         return name == (other as Item).name
     }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + price.hashCode()
+        result = 31 * result + description.hashCode()
+        result = 31 * result + calories
+        result = 31 * result + ingredients.hashCode()
+        result = 31 * result + type.hashCode()
+        return result
+    }
 }
