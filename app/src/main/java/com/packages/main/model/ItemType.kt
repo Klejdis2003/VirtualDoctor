@@ -1,4 +1,4 @@
-package com.packages.main.data
+package com.packages.main.model
 
 enum class ItemType {
     FOOD,

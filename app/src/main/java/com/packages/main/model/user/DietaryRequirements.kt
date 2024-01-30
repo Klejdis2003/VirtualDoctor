@@ -1,4 +1,4 @@
-package com.packages.main.data
+package com.packages.main.model.user
 
 data class DietaryRequirements (
     var calorieLimit: Int,

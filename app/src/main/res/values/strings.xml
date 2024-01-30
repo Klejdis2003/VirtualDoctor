@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Virtual Doctor</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="title_activity_error">ErrorActivity</string>
 </resources>

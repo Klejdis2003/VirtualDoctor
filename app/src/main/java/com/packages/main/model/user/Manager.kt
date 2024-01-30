@@ -1,9 +1,9 @@
-package com.packages.main.data.user
+package com.packages.main.model.user
 
-import com.packages.main.data.Establishment
-import com.packages.main.data.Item
+import com.packages.main.model.Establishment
+import com.packages.main.model.Item
 
-class ManagerAccount(
+class Manager(
     userName: Int,
     name: String,
     email: String,

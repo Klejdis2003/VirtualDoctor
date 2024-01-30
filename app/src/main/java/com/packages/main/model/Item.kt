@@ -1,4 +1,4 @@
-package com.packages.main.data
+package com.packages.main.model
 
 data class Item(
     val name: String,

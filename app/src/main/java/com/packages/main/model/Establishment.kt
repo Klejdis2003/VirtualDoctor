@@ -1,4 +1,4 @@
-package com.packages.main.data
+package com.packages.main.model
 
 import java.util.*
 import kotlin.collections.HashMap
