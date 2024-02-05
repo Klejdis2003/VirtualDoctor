@@ -1,4 +1,4 @@
-//package com.packages.main.db
+//package com.packages.main.backend.db
 //
 //import com.packages.virtual_doctor.BuildConfig.DATABASE_URL
 //import com.packages.virtual_doctor.BuildConfig.SQL_PASSWORD
@@ -10,6 +10,7 @@
 //    fun init(){
 //        Database.connect(DATABASE_URL, DRIVER, SQL_USER, SQL_PASSWORD)
 //    }
+//}
 //    fun rebuildTables(){
 //        //SchemaUtils.create(Account)
 //    }

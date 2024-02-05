@@ -1,7 +1,7 @@
-package com.packages.main.model.user
+package com.packages.main.backend.model.user
 
-import com.packages.main.model.Establishment
-import com.packages.main.model.Item
+import com.packages.main.backend.model.Establishment
+import com.packages.main.backend.model.Item
 
 class Manager(
     userName: Int,
@@ -9,7 +9,7 @@ class Manager(
     email: String,
     password: String,
     private val establishment: Establishment
-) : Account(userName, name, email, password) {
+) : Account(userName, name, email) {
 
         fun addItemToMenu(item: Item){
             establishment.menu[item.type]?.add(item)
