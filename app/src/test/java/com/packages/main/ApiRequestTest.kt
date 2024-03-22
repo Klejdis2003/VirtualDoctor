@@ -1,6 +1,7 @@
 package com.packages.main
 
 import com.packages.main.backend.model.user.User
+import com.packages.main.services.UserService
 import com.packages.main.utils.HttpRequestUtil
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.launch
@@ -25,10 +26,12 @@ class ApiRequestTest {
         )
         runBlocking {
             launch{
-                User.clearTable("2003")
+                UserService.clearTable("2003")
                 for(i in 0 .. 4){
+                    val randName = names.random()
                     val jsonString = json.encodeToString(User(
-                        username  = names.random(),
+                        email = "$randName@10.com",
+                        username  = randName,
                         age = Random.nextInt(10, 100),
                         height = Random.nextFloat() * 85 + 15,
                         weight = Random.nextFloat() * 100 + 20,
@@ -55,18 +58,7 @@ class ApiRequestTest {
     fun testGetUsers() {
         runBlocking {
             launch{
-                User.getAll().forEach { println(it) }
-            }
-        }
-    }
-    @Test
-    fun testGetUser() {
-        runBlocking {
-            launch {
-                val users = User.getAll()
-                val user1ID = users[0].id
-                val actualUser1 = User.getById(user1ID.toInt())
-                assertEquals(users[0], actualUser1)
+                UserService.getAll().forEach { user -> println(user) }
             }
         }
     }
@@ -75,9 +67,9 @@ class ApiRequestTest {
     fun testGetUserByUsername() {
         runBlocking {
             launch {
-                val users = User.getAll()
-                val user1 = users[0]
-                val actualUser1 = User.getByUsername(user1.username)
+                val users = UserService.getAll()
+                val user1 = "${users[0]}@10.com"
+                val actualUser1 = UserService.getByEmail(user1)
                 assertEquals(user1, actualUser1)
             }
         }

@@ -11,12 +11,15 @@ import io.ktor.http.URLProtocol
 import io.ktor.http.content.TextContent
 import io.ktor.http.path
 import io.ktor.util.InternalAPI
+import io.ktor.util.StringValues
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import java.util.Optional
 
 abstract class HttpRequestUtil {
     companion object{
+        private const val HOST= "10.0.2.2:8080"
 
         val json = Json { ignoreUnknownKeys = true }
         private val client = HttpClient()
@@ -25,15 +28,17 @@ abstract class HttpRequestUtil {
          * @param path the path of the request
          * @return HttpResponse object from the server
          */
-        suspend fun makeGetRequest(path: String): HttpResponse{
+        suspend fun makeGetRequest(path: String, params: Optional<StringValues>): HttpResponse{
             lateinit var response: HttpResponse
             runBlocking {
                 launch{
                     response = client.get{
                         url{
                             protocol = URLProtocol.HTTP
-                            host = "localhost:8080"
+                            host = HOST
                             path(path)
+                            if(params.isPresent)
+                                parameters.appendAll(params.get())
                         }
                     }
                 }
@@ -54,7 +59,7 @@ abstract class HttpRequestUtil {
                     response = client.post{
                         url{
                             protocol = URLProtocol.HTTP
-                            host = "localhost:8080"
+                            host = HOST
                             path(path)
                         }
                         body = TextContent(text = bodyContent, contentType = ContentType.Application.Json)
@@ -73,7 +78,7 @@ abstract class HttpRequestUtil {
                     response = client.delete{
                         url{
                             protocol = URLProtocol.HTTP
-                            host = "localhost:8080"
+                            host = HOST
                             path(path)
                         }
                     }
@@ -82,14 +87,21 @@ abstract class HttpRequestUtil {
             return response
         }
 
+        suspend fun getJsonFromRequest(path: String): String? {
+            return getJsonFromRequest(path, Optional.empty())
+        }
+
         /**
          * Makes a GET request to the provided address.
          * @param path the path of the request
          * @return JSON string from the server
          */
-        suspend fun getJsonFromRequest(path: String): String{
-            val response = makeGetRequest(path)
-            return response.body<String>()
+        suspend fun getJsonFromRequest(path: String, params: Optional<StringValues>): String?{
+            val response = makeGetRequest(path, params)
+            if (response.status.value == 200)
+                return response.body<String>()
+
+            return null
         }
 
         /**
@@ -98,9 +110,12 @@ abstract class HttpRequestUtil {
          * @param bodyContent body content of the request, has to be JSON or method will fail
          * @return JSON string from the server
          */
-        suspend fun getJsonFromPostRequest(path: String, bodyContent: String): String{
+        suspend fun getJsonFromPostRequest(path: String, bodyContent: String): String?{
             val response = makePostRequest(path, bodyContent)
-            return response.body<String>()
+            return if (response.status.value == 200)
+                response.body<String>()
+            else
+                null
         }
 
     }

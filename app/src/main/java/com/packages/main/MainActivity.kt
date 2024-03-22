@@ -1,5 +1,6 @@
 package com.packages.main
 
+import UserRegistrationForm
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -21,12 +22,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.firebase.auth.FirebaseAuth
+import com.packages.main.backend.model.user.User
+import com.packages.main.services.RestaurantService
+import com.packages.main.services.UserService
 import com.packages.main.sign_in.GoogleAuthUiClient
 import com.packages.main.sign_in.SignInScreen
 import com.packages.main.sign_in.SignInViewModel
 import com.packages.main.ui.theme.VirtualDoctorTheme
 import com.packages.profile.HomeScreen
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
@@ -61,6 +66,7 @@ class MainActivity : ComponentActivity() {
                                 onResult = { result ->
                                     if (result.resultCode == RESULT_OK) {
                                         lifecycleScope.launch {
+
                                             val signinResult = googleAuthUiClient.signInWithIntent(
                                                 intent = result.data ?: return@launch
                                             )
@@ -72,6 +78,16 @@ class MainActivity : ComponentActivity() {
 
                             LaunchedEffect(key1 = state.isSignInSuccesful){
                                 if(state.isSignInSuccesful){
+                                    val email = googleAuthUiClient.getSignedInUser()?.email
+                                    if(UserService.getByEmail(email!!) == null) {
+                                        Toast.makeText(
+                                            applicationContext,
+                                            "Please complete your registration",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                        navController.navigate("user_registration")
+                                        return@LaunchedEffect;
+                                    }
                                     Toast.makeText(
                                        applicationContext,
                                         "Sign in successful",
@@ -96,8 +112,16 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("home") {
+                            val userData: User? = runBlocking {
+                                if(googleAuthUiClient.getSignedInUser() != null)
+                                    UserService.getByEmail(googleAuthUiClient.getSignedInUser()!!.email!!)
+                                else null
+                            }
+                            val restaurants = runBlocking {
+                                RestaurantService.getAll()
+                            }
                             HomeScreen(
-                                userData = googleAuthUiClient.getSignedInUser(),
+                                userData = userData,
                                 onSignOut = {
                                     lifecycleScope.launch {
                                         googleAuthUiClient.signOut()
@@ -108,8 +132,19 @@ class MainActivity : ComponentActivity() {
                                         ).show()
                                         navController.navigate("sign_in")
                                     }
-                                }
+                                },
+                                restaurants = restaurants
                             )
+                        }
+                        composable("user_registration") {
+                            UserRegistrationForm(auth.currentUser?.email, onRegistered = {
+                                navController.navigate("home")
+                                Toast.makeText(
+                                    applicationContext,
+                                    "Registration successful",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            })
                         }
                     }
                 }

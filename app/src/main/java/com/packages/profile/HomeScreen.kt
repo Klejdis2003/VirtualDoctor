@@ -1,30 +1,106 @@
 package com.packages.profile
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.packages.main.sign_in.UserData
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.packages.main.backend.model.Restaurant
+import com.packages.main.backend.model.user.User
 
 @Composable
 fun HomeScreen(
-    userData: UserData?,
-    onSignOut: () -> Unit
-){
-    Box(){
-        if (userData != null) {
+    userData: User?,
+    onSignOut: () -> Unit,
+    restaurants: List<Restaurant>
+) {
+    var cardExpanded by remember { mutableStateOf("") }
+    Box() {
+        Text(
+            text = "Welcome ${userData?.username}",
+            modifier = Modifier.align(Alignment.TopCenter),
+            fontSize = MaterialTheme.typography.displaySmall.fontSize
+        )
+
+        Column(
+            modifier = Modifier.align(Alignment.Center).fillMaxWidth()
+        ) {
             Text(
-                text = "${userData.email}, ${userData.username}",
-                modifier = Modifier.align(Alignment.Center)
+                text = "Restaurants you might like: ",
+                modifier = Modifier.padding(8.dp).align(Alignment.Start),
+                fontSize = MaterialTheme.typography.headlineMedium.fontSize
             )
-            Button(
-                onClick = onSignOut,
-                modifier = Modifier.align(Alignment.BottomCenter)
-            ){
-                Text(text = "Sign Out")
-            }
+            restaurants.forEach {
+                Card(modifier = Modifier.padding(8.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth()
+                    .clickable { cardExpanded = when{
+                        cardExpanded == "expanded${it.id}" -> ""
+                        else -> "expanded${it.id}"
+                    } }
+                    .animateContentSize(tween(300, easing= LinearOutSlowInEasing))) {
+                    Text(
+                        text = it.name,
+                        modifier = Modifier.padding(8.dp).align(Alignment.Start),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MaterialTheme.typography.labelLarge.fontSize
+                    )
+                    Text(
+                        text = "Location: ${it.street_address}",
+                        modifier = Modifier.padding(8.dp).align(Alignment.End)
+                    )
+
+                    if (cardExpanded == "expanded${it.id}") {
+                        Text(
+                            text = "City: ${it.city}",
+                            modifier = Modifier.padding(8.dp).align(Alignment.End)
+                        )
+                        Text(
+                            text = "Postcode: ${it.postcode}",
+                            modifier = Modifier.padding(8.dp).align(Alignment.End)
+                        )
+                        Text(
+                            text = "Country: ${it.country}",
+                            modifier = Modifier.padding(8.dp).align(Alignment.End)
+                        )
+                        Text(
+                            text = "Telephone: ${it.telephone}",
+                            modifier = Modifier.padding(8.dp).align(Alignment.End)
+                        )
+                        Text(
+                            text = "Email: ${it.email}",
+                            modifier = Modifier.padding(8.dp).align(Alignment.End)
+                        )
+                        Text(
+                            text = "Website: ${it.website}",
+                            modifier = Modifier.padding(8.dp).align(Alignment.End)
+                        )
+                    }
+                }
+
         }
     }
+    Button(
+        onClick = onSignOut,
+        modifier = Modifier.align(Alignment.BottomCenter)
+    ) {
+        Text(text = "Sign Out")
+    }
+}
 }
