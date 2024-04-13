@@ -21,8 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.packages.main.backend.model.Restaurant
-import com.packages.main.backend.model.user.User
+import com.packages.client.restaurant.Restaurant
+import com.packages.client.user.User
 
 @Composable
 fun HomeScreen(

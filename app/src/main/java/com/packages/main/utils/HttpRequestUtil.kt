@@ -70,7 +70,7 @@ abstract class HttpRequestUtil {
             return response
         }
 
-        suspend fun makeDeleteRequest(path: String): HttpResponse{
+        suspend fun makeDeleteRequest(path: String, hostAddress: String = HOST): HttpResponse{
             lateinit var response: HttpResponse
             runBlocking {
                 launch {
@@ -78,7 +78,7 @@ abstract class HttpRequestUtil {
                     response = client.delete{
                         url{
                             protocol = URLProtocol.HTTP
-                            host = HOST
+                            host = hostAddress
                             path(path)
                         }
                     }

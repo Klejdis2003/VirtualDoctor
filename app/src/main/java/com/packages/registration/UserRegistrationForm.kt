@@ -24,7 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.packages.main.backend.model.user.User
+import com.packages.client.user.User
 import com.packages.main.services.UserService
 import kotlinx.coroutines.launch
 
@@ -45,7 +45,6 @@ fun UserRegistrationForm(email: String?, onRegistered: () -> Unit){
     val isFormValid = username.isNotBlank() && age.isNotBlank() && height.isNotBlank() && weight.isNotBlank()
     val context = LocalContext.current
 
-    val isBlank = false
     val onSubmit: () -> Unit = {
         coroutineScope.launch {
             if (!isFormValid)
@@ -193,10 +192,7 @@ fun TextFieldWithSpacerAndErrorMessage(
 }
 
 private fun convertToInt(string: String): Int?{
-    return if(string.isBlank())
-        null
-    else
-        string.toInt()
+    return if(string.isBlank()) null else string.toInt()
 }
 
 

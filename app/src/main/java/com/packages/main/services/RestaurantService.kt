@@ -1,6 +1,6 @@
 package com.packages.main.services
 
-import com.packages.main.backend.model.Restaurant
+import com.packages.client.restaurant.Restaurant
 import com.packages.main.utils.HttpRequestUtil
 
 class RestaurantService {

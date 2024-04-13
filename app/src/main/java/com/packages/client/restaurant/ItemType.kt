@@ -1,4 +1,4 @@
-package com.packages.main.backend.model
+package com.packages.client.restaurant
 
 enum class ItemType {
     FOOD,

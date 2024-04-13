@@ -1,4 +1,6 @@
-package com.packages.main.backend.model.user
+package com.packages.client.user
+
+import com.packages.main.model.user.DietaryRequirements
 
 data class UserHealthInfo(
   var height: Float,

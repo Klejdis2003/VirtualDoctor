@@ -1,6 +1,6 @@
 package com.packages.main.services
 
-import com.packages.main.backend.model.user.User
+import com.packages.client.user.User
 import com.packages.main.utils.HttpRequestUtil
 import io.ktor.http.HttpStatusCode
 import io.ktor.util.StringValues
@@ -26,6 +26,8 @@ abstract class UserService {
             else HttpRequestUtil.json.decodeFromString<User>(jsonString)
         }
 
+
+
         /**
          * @param username the username of the user that needs to be retrieved
          * @return User object with the given username
@@ -39,6 +41,10 @@ abstract class UserService {
             else HttpRequestUtil.json.decodeFromString<User>(jsonString)
         }
 
+        suspend fun exists(email: String?): Boolean {
+            if(email == null) return false
+            return getByEmail(email) != null
+        }
         /**
          * @param user User object (Data Access Object) that needs to be created in the database
          */
@@ -49,7 +55,7 @@ abstract class UserService {
         }
 
         suspend fun clearTable(key: String): String {
-            val response = HttpRequestUtil.makeDeleteRequest("users/clear/key = $key")
+            val response = HttpRequestUtil.makeDeleteRequest("users/clear/key = $key", hostAddress = "localhost:8080")
             return if (response.status == HttpStatusCode.Forbidden) "Invalid key, forbidden operation"
             else "Table cleared successfully"
         }

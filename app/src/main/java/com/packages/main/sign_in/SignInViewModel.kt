@@ -9,9 +9,9 @@ class SignInViewModel : ViewModel() {
     private val _state = MutableStateFlow(SignInState())
     val state = _state.asStateFlow()
 
-    fun onSignInResult(result: SigninResult){
+    fun onSignInResult(result: SignInResult){
         _state.update { it.copy(
-            isSignInSuccesful = result.data != null,
+            isSignInSuccessful = result.data != null,
             signInError = result.errorMessage
         ) }
     }

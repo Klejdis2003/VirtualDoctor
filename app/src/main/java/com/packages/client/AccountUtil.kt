@@ -1,4 +1,4 @@
-package com.packages.main.backend.model.user
+package com.packages.client
 
 abstract class AccountUtil {
 

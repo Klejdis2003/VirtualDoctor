@@ -32,13 +32,13 @@ class GoogleAuthUiClient (
         return result?.pendingIntent?.intentSender
     }
 
-    suspend fun signInWithIntent(intent: Intent) : SigninResult{
+    suspend fun signInWithIntent(intent: Intent) : SignInResult{
         val credential = oneTapClient.getSignInCredentialFromIntent(intent)
         val idToken = credential.googleIdToken
         val googleCredentials = GoogleAuthProvider.getCredential(idToken, null)
         return try{
             val user = auth.signInWithCredential(googleCredentials).await().user
-            SigninResult(
+            SignInResult(
                 data = user?.run{
                     UserData(
                         userId = uid,
@@ -52,7 +52,7 @@ class GoogleAuthUiClient (
         catch(e: Exception){
             e.printStackTrace()
             if(e is CancellationException) throw e
-            SigninResult(null, e.message)
+            SignInResult(null, e.message)
         }
     }
 

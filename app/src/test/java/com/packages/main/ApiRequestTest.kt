@@ -1,6 +1,7 @@
 package com.packages.main
 
-import com.packages.main.backend.model.user.User
+import com.packages.client.user.User
+import com.packages.main.services.RestaurantOwnerService
 import com.packages.main.services.UserService
 import com.packages.main.utils.HttpRequestUtil
 import junit.framework.TestCase.assertEquals
@@ -27,9 +28,11 @@ class ApiRequestTest {
         runBlocking {
             launch{
                 UserService.clearTable("2003")
+                RestaurantOwnerService.clearTable("2003")
                 for(i in 0 .. 4){
                     val randName = names.random()
-                    val jsonString = json.encodeToString(User(
+                    val jsonString = json.encodeToString(
+                        User(
                         email = "$randName@10.com",
                         username  = randName,
                         age = Random.nextInt(10, 100),
@@ -41,7 +44,8 @@ class ApiRequestTest {
                         maxProteinContent = Random.nextInt(0, 200),
                         isVegetarian = Random.nextBoolean(),
                         isVegan = Random.nextBoolean()
-                    ))
+                    )
+                    )
                     HttpRequestUtil.makePostRequest("users", jsonString)
                 }
             }

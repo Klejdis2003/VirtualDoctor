@@ -1,5 +1,5 @@
 package com.packages.main.sign_in
-data class SigninResult(
+data class SignInResult(
     val data: UserData?,
     val errorMessage: String?
 )

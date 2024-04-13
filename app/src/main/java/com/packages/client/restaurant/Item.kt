@@ -1,4 +1,4 @@
-package com.packages.main.backend.model
+package com.packages.client.restaurant
 
 data class Item(
     val name: String,
