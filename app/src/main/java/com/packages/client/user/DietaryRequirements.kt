@@ -1,16 +1,14 @@
 package com.packages.main.model.user
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class DietaryRequirements (
-    var calorieLimit: Int,
-    var maxSugarContent: Int,
-    var maxFatContent: Int,
-    var maxProteinContent: Int,
-    var vegetarian: Boolean = false,
-    var vegan: Boolean = false,
-    var glutenFree: Boolean = false,
-    var nutFree: Boolean = false,
-    var dairyFree: Boolean = false,
-    var halal: Boolean = false,
-    var kosher: Boolean = false,
-    )
+    var calorieLimit: Int = Int.MAX_VALUE,
+    var maxSugarContent: Int = Int.MAX_VALUE,
+    var maxFatContent: Int = Int.MAX_VALUE,
+    var maxProteinContent: Int = Int.MAX_VALUE,
+    var isVegetarian: Boolean = false,
+    var isVegan: Boolean = false
+)
 

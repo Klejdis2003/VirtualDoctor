@@ -15,17 +15,14 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,9 +45,6 @@ fun SignInScreen(
     onRestaurantOwnerRegistrationClick: (name: String) -> Unit,
 ) {
     val context = LocalContext.current
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false)}
     var name by remember { mutableStateOf("") }
     LaunchedEffect(key1 = state.signInError){
         state.signInError?.let{ error->
@@ -100,10 +93,6 @@ fun SignInScreen(
             LogInBox(onClick =
             {
                 onRestaurantOwnerSignInClick()
-                showBottomSheet = true
-                scope.launch {
-                    sheetState.show()
-                }
             }) {
                 LogInImage(
                     model = "https://www.restolacuisine.com/restaurants/restaurant-la-cuisine/website/images/Lacuisine_resto.jpg",
@@ -119,20 +108,15 @@ fun SignInScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-            if(showBottomSheet)
+            if(state.sheetOpened)
                 RestaurantOwnerRegistrationForm(
-                    state=sheetState,
                     onDissmisRequest = {
-                        scope.launch {
-                            sheetState.hide()
-                            showBottomSheet = false
-                        }
+                        state.sheetOpened = false
                     },
                     onSubmit = onRestaurantOwnerRegistrationClick,
                     onTextFieldUpdate = {
                         name = it
-                    },
-                    onRegistered = {})
+                    })
         }
     }
 }
@@ -169,11 +153,9 @@ fun LogInBox(@FloatRange (0.0, 1.0) fraction: Float = 1F ,
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RestaurantOwnerRegistrationForm(
-    state: SheetState,
     onSubmit: (String) -> Unit,
     onDissmisRequest: () -> Unit,
-    onTextFieldUpdate: (name: String) -> Unit,
-    onRegistered: () -> Unit){
+    onTextFieldUpdate: (name: String) -> Unit){
     var name by remember { mutableStateOf("") }
     Dialog(
         onDismissRequest = onDissmisRequest,
@@ -189,7 +171,9 @@ fun RestaurantOwnerRegistrationForm(
             ) {
                 Text(
                     "Complete registration",
-                    modifier = Modifier.wrapContentSize(Alignment.Center).fillMaxHeight(0.3F),
+                    modifier = Modifier
+                        .wrapContentSize(Alignment.Center)
+                        .fillMaxHeight(0.3F),
                     textAlign = TextAlign.Center,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold

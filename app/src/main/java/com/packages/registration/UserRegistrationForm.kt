@@ -25,7 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.packages.client.user.User
-import com.packages.main.services.UserService
+import com.packages.main.repositories.UserRepository
 import kotlinx.coroutines.launch
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -49,7 +49,7 @@ fun UserRegistrationForm(email: String?, onRegistered: () -> Unit){
         coroutineScope.launch {
             if (!isFormValid)
                 return@launch
-            val user = UserService.createUser(
+            val user = UserRepository.createUser(
                 User(
                     email = email!!,
                     username = username,

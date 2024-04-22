@@ -5,21 +5,19 @@ import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.URLProtocol
 import io.ktor.http.content.TextContent
 import io.ktor.http.path
-import io.ktor.util.InternalAPI
 import io.ktor.util.StringValues
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import java.util.Optional
 
 abstract class HttpRequestUtil {
     companion object{
-        private const val HOST= "10.0.2.2:8080"
+        private const val HOST= "192.168.39.242:8080"
 
         val json = Json { ignoreUnknownKeys = true }
         private val client = HttpClient()
@@ -28,11 +26,8 @@ abstract class HttpRequestUtil {
          * @param path the path of the request
          * @return HttpResponse object from the server
          */
-        suspend fun makeGetRequest(path: String, params: Optional<StringValues>): HttpResponse{
-            lateinit var response: HttpResponse
-            runBlocking {
-                launch{
-                    response = client.get{
+        private suspend fun makeGetRequest(path: String, params: Optional<StringValues>): HttpResponse{
+            val response: HttpResponse = client.get{
                         url{
                             protocol = URLProtocol.HTTP
                             host = HOST
@@ -40,8 +35,6 @@ abstract class HttpRequestUtil {
                             if(params.isPresent)
                                 parameters.appendAll(params.get())
                         }
-                    }
-                }
             }
             return response
         }
@@ -51,37 +44,26 @@ abstract class HttpRequestUtil {
          * @param bodyContent body content of the request, has to be JSON or method will fail
          * @return HttpResponse object from the server
          */
-        @OptIn(InternalAPI::class)
         suspend fun makePostRequest(path: String, bodyContent: String): HttpResponse{
-            lateinit var response: HttpResponse
-            runBlocking {
-                launch {
-                    response = client.post{
+            val response: HttpResponse = client.post{
                         url{
                             protocol = URLProtocol.HTTP
                             host = HOST
                             path(path)
                         }
-                        body = TextContent(text = bodyContent, contentType = ContentType.Application.Json)
+                        setBody(TextContent(text = bodyContent, contentType = ContentType.Application.Json))
                     }
-
-                }
-            }
             return response
         }
 
         suspend fun makeDeleteRequest(path: String, hostAddress: String = HOST): HttpResponse{
             lateinit var response: HttpResponse
-            runBlocking {
-                launch {
-                    val client = HttpClient()
+            val client = HttpClient()
                     response = client.delete{
                         url{
                             protocol = URLProtocol.HTTP
                             host = hostAddress
                             path(path)
-                        }
-                    }
                 }
             }
             return response

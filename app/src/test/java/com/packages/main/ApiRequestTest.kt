@@ -1,8 +1,8 @@
 package com.packages.main
 
 import com.packages.client.user.User
-import com.packages.main.services.RestaurantOwnerService
-import com.packages.main.services.UserService
+import com.packages.main.repositories.RestaurantOwnerRepository
+import com.packages.main.repositories.UserRepository
 import com.packages.main.utils.HttpRequestUtil
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.launch
@@ -27,8 +27,8 @@ class ApiRequestTest {
         )
         runBlocking {
             launch{
-                UserService.clearTable("2003")
-                RestaurantOwnerService.clearTable("2003")
+                UserRepository.clearTable("2003")
+                RestaurantOwnerRepository.clearTable("2003")
                 for(i in 0 .. 4){
                     val randName = names.random()
                     val jsonString = json.encodeToString(
@@ -62,7 +62,7 @@ class ApiRequestTest {
     fun testGetUsers() {
         runBlocking {
             launch{
-                UserService.getAll().forEach { user -> println(user) }
+                UserRepository.getAll().forEach { user -> println(user) }
             }
         }
     }
@@ -71,9 +71,9 @@ class ApiRequestTest {
     fun testGetUserByUsername() {
         runBlocking {
             launch {
-                val users = UserService.getAll()
+                val users = UserRepository.getAll()
                 val user1 = "${users[0]}@10.com"
-                val actualUser1 = UserService.getByEmail(user1)
+                val actualUser1 = UserRepository.getByEmail(user1)
                 assertEquals(user1, actualUser1)
             }
         }

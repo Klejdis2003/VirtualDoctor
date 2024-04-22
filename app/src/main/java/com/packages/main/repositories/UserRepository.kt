@@ -1,4 +1,4 @@
-package com.packages.main.services
+package com.packages.main.repositories
 
 import com.packages.client.user.User
 import com.packages.main.utils.HttpRequestUtil
@@ -7,7 +7,7 @@ import io.ktor.util.StringValues
 import kotlinx.serialization.encodeToString
 import java.util.Optional
 
-abstract class UserService {
+abstract class UserRepository {
 
     companion object{
         private val path = "/users"

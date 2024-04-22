@@ -16,7 +16,7 @@ class SignInViewModel : ViewModel() {
         ) }
     }
 
-    fun resetState(){
-        _state.update { SignInState() }
+    fun resetState(isSheetOpened: Boolean){
+        _state.update { SignInState(sheetOpened = isSheetOpened) }
     }
 }

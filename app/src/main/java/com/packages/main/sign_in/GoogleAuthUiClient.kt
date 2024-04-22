@@ -3,21 +3,32 @@ package com.packages.main.sign_in
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
+import android.util.Log
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.BeginSignInRequest.GoogleIdTokenRequestOptions
 import com.google.android.gms.auth.api.identity.SignInClient
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.Task
 import com.google.firebase.Firebase
+import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
+import com.packages.client.AccountType
+import com.packages.client.user.User
+import com.packages.main.repositories.UserRepository
 import com.packages.virtual_doctor.R
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.CancellationException
 
 class GoogleAuthUiClient (
     private val context: Context,
-    private val oneTapClient: SignInClient
+    private val oneTapClient: SignInClient,
+
 ){
     private val auth = Firebase.auth
+
+
 
     suspend fun signIn(): IntentSender? {
         val result = try{
@@ -32,12 +43,20 @@ class GoogleAuthUiClient (
         return result?.pendingIntent?.intentSender
     }
 
-    suspend fun signInWithIntent(intent: Intent) : SignInResult{
+    suspend fun signInWithIntent(intent: Intent, onSignInComplete: (email: String?) -> Unit = {}) : SignInResult{
         val credential = oneTapClient.getSignInCredentialFromIntent(intent)
         val idToken = credential.googleIdToken
         val googleCredentials = GoogleAuthProvider.getCredential(idToken, null)
         return try{
-            val user = auth.signInWithCredential(googleCredentials).await().user
+            val user = auth.signInWithCredential(googleCredentials).addOnCompleteListener { task ->
+                if(task.isSuccessful){
+                    val email = task.result.user?.email
+                    onSignInComplete(email)
+                    }
+                }
+
+                .await()
+                .user
             SignInResult(
                 data = user?.run{
                     UserData(
@@ -71,7 +90,7 @@ class GoogleAuthUiClient (
         UserData(
             userId = uid,
             username = displayName,
-            email = email
+            email = email,
         )
     }
 

@@ -1,5 +1,6 @@
-package com.packages.main.services
+package com.packages.main.repositories
 
+import com.packages.client.restaurant.Restaurant
 import com.packages.client.restaurant.RestaurantOwner
 import com.packages.main.utils.HttpRequestUtil
 import io.ktor.http.HttpStatusCode
@@ -7,7 +8,7 @@ import io.ktor.util.StringValues
 import kotlinx.serialization.encodeToString
 import java.util.Optional
 
-class RestaurantOwnerService {
+class RestaurantOwnerRepository {
 
     companion object {
         private val baseUrl = "/restaurant_owners"
@@ -37,7 +38,17 @@ class RestaurantOwnerService {
             else HttpRequestUtil.json.decodeFromString<RestaurantOwner>(restaurantOwnerJson)
         }
 
-        suspend fun exists(email: String): Boolean {
+        suspend fun getOwnedRestaurants(email: String): List<Restaurant> {
+            val url = "$baseUrl/restaurants"
+            val params = StringValues.build {
+                append("email", email)
+            }
+            val restaurantsJson = HttpRequestUtil.getJsonFromRequest(url, Optional.of(params))
+            return if (restaurantsJson == null) emptyList()
+            else HttpRequestUtil.json.decodeFromString<List<Restaurant>>(restaurantsJson)
+        }
+        suspend fun exists(email: String?): Boolean {
+            if(email == null) return false
             return getRestaurantOwner(email) != null
         }
 

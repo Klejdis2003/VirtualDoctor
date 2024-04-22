@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class Restaurant(
     val id: Long,
     val name: String,
-    val street_address: String,
+    val streetAddress: String,
     val city: String,
     val postcode: String,
     val country: String,

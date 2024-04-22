@@ -1,5 +1,6 @@
 package com.packages.client.user
 
+import com.packages.main.model.user.DietaryRequirements
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -9,14 +10,5 @@ data class User(
     val age: Int,
     val height: Float,
     val weight: Float,
-    val calorieLimit: Int = Int.MAX_VALUE,
-    val maxSugarContent: Int = Int.MAX_VALUE,
-    val maxFatContent: Int = Int.MAX_VALUE,
-    val maxProteinContent: Int = Int.MAX_VALUE,
-    val isVegetarian: Boolean = false,
-    val isVegan: Boolean = false,
-){
-    override fun toString(): String {
-        return "User(username='$username', calorieLimit=$calorieLimit, maxSugarContent=$maxSugarContent, maxFatContent=$maxFatContent, maxProteinContent=$maxProteinContent, isVegetarian=$isVegetarian, isVegan=$isVegan)"
-    }
-}
+    val dietaryRequirements: DietaryRequirements
+)
