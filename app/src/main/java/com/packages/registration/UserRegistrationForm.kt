@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.packages.client.user.User
+import com.packages.main.model.user.DietaryRequirements
 import com.packages.main.repositories.UserRepository
 import kotlinx.coroutines.launch
 
@@ -56,12 +57,14 @@ fun UserRegistrationForm(email: String?, onRegistered: () -> Unit){
                     age = age.toInt(),
                     height = height.toFloat(),
                     weight = weight.toFloat(),
-                    calorieLimit = convertToInt(calorieLimit) ?: Int.MAX_VALUE,
-                    maxSugarContent = convertToInt(maxSugarContent) ?: Int.MAX_VALUE,
-                    maxFatContent = convertToInt(maxFatContent) ?: Int.MAX_VALUE,
-                    maxProteinContent = convertToInt(maxProteinContent) ?: Int.MAX_VALUE,
-                    isVegetarian = isVegetarian,
-                    isVegan = isVegan
+                    dietaryRequirements = DietaryRequirements(
+                        calorieLimit = convertToInt(calorieLimit) ?: Int.MAX_VALUE,
+                        maxSugarContent = convertToInt(maxSugarContent) ?: Int.MAX_VALUE,
+                        maxFatContent = convertToInt(maxFatContent) ?: Int.MAX_VALUE,
+                        maxProteinContent = convertToInt(maxProteinContent) ?: Int.MAX_VALUE,
+                        isVegetarian = isVegetarian,
+                        isVegan = isVegan
+                    )
                 )
             )
 
