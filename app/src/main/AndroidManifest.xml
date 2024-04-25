@@ -12,7 +12,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.VirtualDoctor">
+        android:theme="@style/Theme.VirtualDoctor"
+        android:windowSoftInputMode="adjustResize"
+        >
         <activity
             android:name="com.packages.main.MainActivity"
             android:exported="true"

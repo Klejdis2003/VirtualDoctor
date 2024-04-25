@@ -1,19 +1,26 @@
 package com.packages.user_profile
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.tween
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,9 +28,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import androidx.navigation.compose.rememberNavController
+import com.packages.client.restaurant.Restaurant
+import com.packages.user_profile.dashboard.Dashboard
+import com.packages.user_profile.restaurant_details.RestaurantDetails
+import com.packages.user_profile.restaurant_details.RestaurantDetailsViewModel
+import com.packages.user_profile.restaurant_details.RestaurantDetailsViewModelFactory
+import com.packages.virtual_doctor.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onSignOut: () -> Unit,
@@ -31,104 +52,135 @@ fun HomeScreen(
 ) {
     val state by homeViewModel.state.collectAsState()
     val userData = state.user
-    val restaurants = state.restaurants
-    var cardExpanded by remember { mutableStateOf("") }
-    Box() {
-        if(state.loading)
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-        else{
-            Text(
-                text = "Welcome ${userData?.username}",
-                modifier = Modifier.align(Alignment.TopCenter),
-                fontSize = MaterialTheme.typography.displaySmall.fontSize
-            )
+    val navController = rememberNavController()
+    val context = LocalContext.current
 
-            Column(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .fillMaxWidth()
-            ) {
+    Box {
+        LaunchedEffect(key1 = state.updatedStatsState) {
+            when(state.updatedStatsState){
+                is UpdateStatsState.Success -> Toast.makeText(context, "Added item to your daily consumption.", Toast.LENGTH_SHORT).show()
+                is UpdateStatsState.Error -> Toast.makeText(context, "Error contacting server", Toast.LENGTH_SHORT).show()
+                is UpdateStatsState.NotStarted -> {
+                    // Do nothing
+                }
+            }
+            homeViewModel.onStatsToastDismissed()
+        }
+        CenterAlignedTopAppBar(title = {
+           userData?.let {
+               Text(text = it.username)
+           }}
+        )
+        if (state.loading)
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+
+        BottomAppBar(
+            actions = {
+                      items.forEach() {
+                          IconButton(onClick = {
+                                navController.navigate(it.route)
+                          }) {
+                              Icon(
+                                  painter = painterResource(id = it.id),
+                                  contentDescription = it.route,
+                                  modifier = Modifier.clickable {
+                                      navController.navigate(it.route) {
+                                            popUpTo(navController.graph.startDestinationId) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+
+                                      }
+                                  }
+                              )
+                          }
+                      }
+            },
+            floatingActionButton = {
+                FloatingActionButton(onClick = onSignOut) {
+                    Icon(painter = painterResource(R.drawable.logout), contentDescription = "Log out")
+                }
+            },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+
+        NavHost(navController = navController, startDestination = Screen.Dashboard.route, modifier = Modifier.align(Alignment.Center)) {
+            composable(Screen.Dashboard.route) {
+                Dashboard(stats = state.stats!!, dietaryRequirements = state.user!!.dietaryRequirements)
+            }
+            navigation(route = Screen.Home.route, startDestination = "restaurantList") {
+
+                composable("restaurantList") {
+                    RestaurantList(restaurants = state.restaurants, onRestaurantClick = {
+                        homeViewModel.onRestaurantClicked(it)
+                        navController.navigate("restaurantDetails") {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    })
+                }
+
+                composable("restaurantDetails") {
+                    val restaurantDetailsViewModel = viewModel<RestaurantDetailsViewModel>( factory = RestaurantDetailsViewModelFactory(state.clickedRestaurant!!, onAddButtonPressed = {
+                        homeViewModel.onAddButtonPressed(it)
+                    }))
+                    RestaurantDetails(viewModel = restaurantDetailsViewModel)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RestaurantList(
+    modifier: Modifier = Modifier,
+    restaurants: List<Restaurant>,
+    onRestaurantClick : (Restaurant) -> Unit = {}
+) {
+    var cardExpanded by remember { mutableStateOf("") }
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .size(600.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "Restaurants you might like: ",
+            modifier = Modifier
+                .padding(8.dp)
+                .align(Alignment.Start),
+            fontSize = MaterialTheme.typography.headlineMedium.fontSize
+        )
+        restaurants.forEach {
+            Card(modifier = Modifier
+                .padding(8.dp)
+                .align(Alignment.CenterHorizontally)
+                .fillMaxWidth()
+                .clickable {
+                    onRestaurantClick(it)
+                }) {
                 Text(
-                    text = "Restaurants you might like: ",
+                    text = it.name,
                     modifier = Modifier
                         .padding(8.dp)
                         .align(Alignment.Start),
-                    fontSize = MaterialTheme.typography.headlineMedium.fontSize
+                    fontWeight = FontWeight.Bold,
+                    fontSize = MaterialTheme.typography.labelLarge.fontSize
                 )
-                restaurants.forEach {
-                    Card(modifier = Modifier
+                Text(
+                    text = "Location: ${it.streetAddress}",
+                    modifier = Modifier
                         .padding(8.dp)
-                        .align(Alignment.CenterHorizontally)
-                        .fillMaxWidth()
-                        .clickable {
-                            cardExpanded = when {
-                                cardExpanded == "expanded${it.id}" -> ""
-                                else -> "expanded${it.id}"
-                            }
-                        }
-                        .animateContentSize(tween(300, easing = LinearOutSlowInEasing))) {
-                        Text(
-                            text = it.name,
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .align(Alignment.Start),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = MaterialTheme.typography.labelLarge.fontSize
-                        )
-                        Text(
-                            text = "Location: ${it.streetAddress}",
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .align(Alignment.End)
-                        )
-
-                        if (cardExpanded == "expanded${it.id}") {
-                            Text(
-                                text = "City: ${it.city}",
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .align(Alignment.End)
-                            )
-                            Text(
-                                text = "Postcode: ${it.postcode}",
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .align(Alignment.End)
-                            )
-                            Text(
-                                text = "Country: ${it.country}",
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .align(Alignment.End)
-                            )
-                            Text(
-                                text = "Telephone: ${it.telephone}",
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .align(Alignment.End)
-                            )
-                            Text(
-                                text = "Email: ${it.email}",
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .align(Alignment.End)
-                            )
-                            Text(
-                                text = "Website: ${it.website}",
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .align(Alignment.End)
-                            )
-                        }
-                    }
-                }
+                        .align(Alignment.End)
+                )
             }
-    }
-    Button(
-        onClick = onSignOut,
-        modifier = Modifier.align(Alignment.BottomCenter)
-    ) {
-        Text(text = "Sign Out")
+        }
     }
 }
-}
+
+

@@ -17,7 +17,7 @@ import java.util.Optional
 
 abstract class HttpRequestUtil {
     companion object{
-        private const val HOST= "10.0.2.2:8080"
+        private const val HOST= "192.168.39.242:8080"
 
         val json = Json { ignoreUnknownKeys = true }
         private val client = HttpClient()

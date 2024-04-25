@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "925752205867-829ppoav4vf5r86hdbrmleh8i1cluqau.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.egi.virtualdoctor",
+            "certificate_hash": "c9bf445b6843f95be41f246c340a8849654cea24"
+          }
+        },
+        {
           "client_id": "925752205867-ql0p2o2fsc297dp2tt4ejm851vhvrdsf.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

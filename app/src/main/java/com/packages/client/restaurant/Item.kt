@@ -1,29 +1,22 @@
 package com.packages.client.restaurant
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Item(
+    val id: Long,
     val name: String,
-    var price: Float,
     val description: String,
+    val imageUrl: String,
+    val price: Float,
     val calories: Int,
-    val ingredients: List<String>,
-    val type: ItemType
-) : Comparable<Item>
-{
-    override fun compareTo(other: Item): Int {
-        return name.compareTo(other.name, ignoreCase = true)
-    }
-
-    override fun equals(other: Any?): Boolean {
-        return name == (other as Item).name
-    }
-
-    override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + price.hashCode()
-        result = 31 * result + description.hashCode()
-        result = 31 * result + calories
-        result = 31 * result + ingredients.hashCode()
-        result = 31 * result + type.hashCode()
-        return result
-    }
+    val sugarContent: Int,
+    val fatContent: Int,
+    val proteinContent: Int,
+    val isVegetarian: Boolean,
+    val isVegan: Boolean,
+    val itemType: ItemType,
+)
+enum class ItemType {
+    FOOD, DRINK, DESSERT
 }

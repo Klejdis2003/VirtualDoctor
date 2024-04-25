@@ -1,5 +1,7 @@
 package com.packages.main.repositories
 
+import com.packages.client.restaurant.Item
+import com.packages.client.user.Stats
 import com.packages.client.user.User
 import com.packages.main.utils.HttpRequestUtil
 import io.ktor.http.HttpStatusCode
@@ -52,6 +54,18 @@ abstract class UserRepository {
             val jsonString = HttpRequestUtil.json.encodeToString(user)
             return if (HttpRequestUtil.makePostRequest(path, jsonString).status == HttpStatusCode.Created) user
             else null
+        }
+
+        suspend fun addUserItem(user: User, item: Item): Stats? {
+            val updatedStats = HttpRequestUtil.getJsonFromPostRequest("$path/${user.id}/addItem/${item.id}", "")
+            return if (updatedStats == null) null
+            else HttpRequestUtil.json.decodeFromString<Stats>(updatedStats)
+        }
+
+        suspend fun getDailyStats(user: User): Stats? {
+            val jsonString = HttpRequestUtil.getJsonFromRequest("$path/${user.id}/stats/today")
+            return if (jsonString == null) null
+            else HttpRequestUtil.json.decodeFromString<Stats>(jsonString)
         }
 
         suspend fun clearTable(key: String): String {

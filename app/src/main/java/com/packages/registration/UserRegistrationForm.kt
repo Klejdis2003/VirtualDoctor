@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
@@ -23,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.packages.client.user.User
 import com.packages.main.model.user.DietaryRequirements
@@ -48,8 +50,10 @@ fun UserRegistrationForm(email: String?, onRegistered: () -> Unit){
 
     val onSubmit: () -> Unit = {
         coroutineScope.launch {
-            if (!isFormValid)
+            if (!isFormValid){
+                Toast.makeText(context, "Please fill in all required fields(*) fields", Toast.LENGTH_SHORT).show()
                 return@launch
+            }
             val user = UserRepository.createUser(
                 User(
                     email = email!!,
@@ -88,53 +92,60 @@ fun UserRegistrationForm(email: String?, onRegistered: () -> Unit){
             TextFieldWithSpacerAndErrorMessage(
                 value = username,
                 onValueChange = { username = it },
-                label = "Username",
+                label = "Username*",
                 errorMessage = if(username.isBlank()) "Username cannot be blank" else null
             )
 
             TextFieldWithSpacerAndErrorMessage(
                 value = age,
                 onValueChange = { age = it },
-                label = "Age",
-                errorMessage = if(age.isBlank()) "Age cannot be blank" else null
+                label = "Age*",
+                errorMessage = if(age.isBlank()) "Age cannot be blank" else null,
+                isNumerical = true
             )
 
             TextFieldWithSpacerAndErrorMessage(
                 value = height,
                 onValueChange = { height = it },
-                label = "Height",
-                errorMessage = if(height.isBlank()) "Height cannot be blank" else null
+                label = "Height*",
+                errorMessage = if(height.isBlank()) "Height cannot be blank" else null,
+                isNumerical = true
             )
 
             TextFieldWithSpacerAndErrorMessage(
                 value = weight,
                 onValueChange = { weight = it },
-                label = "Weight",
-                errorMessage = if(weight.isBlank()) "Weight cannot be blank" else null
+                label = "Weight*",
+                errorMessage = if(weight.isBlank()) "Weight cannot be blank" else null,
+                isNumerical = true
             )
 
             TextFieldWithSpacer(
                 value = calorieLimit,
                 onValueChange = { calorieLimit = it },
-                label = "Calorie Limit"
+                label = "Calorie Limit",
+                isNumerical = true
             )
 
             TextFieldWithSpacer(
                 value = maxSugarContent,
                 onValueChange = { maxSugarContent = it },
-                label = "Max Sugar Content"
+                label = "Max Sugar Content",
+                isNumerical = true
             )
 
             TextFieldWithSpacer(
                 value = maxFatContent,
                 onValueChange = { maxFatContent = it },
-                label = "Max Fat Content"
+                label = "Max Fat Content",
+                isNumerical = true
             )
 
             TextFieldWithSpacer(
                 value = maxProteinContent,
                 onValueChange = { maxProteinContent = it },
-                label = "Max Protein Content"
+                label = "Max Protein Content",
+                isNumerical = true
             )
 
 
@@ -154,12 +165,10 @@ fun UserRegistrationForm(email: String?, onRegistered: () -> Unit){
                 Text("Vegan")
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = {
-                onSubmit()
-            }) {
+            Button(onClick = { onSubmit() }, enabled = isFormValid) {
                 Text("Register")
             }
-
+            Text(text = "Fields marked with * are required")
         }
     }
 }
@@ -169,8 +178,9 @@ fun TextFieldWithSpacer(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
+    isNumerical: Boolean = false
 ){
-    TextFieldWithSpacerAndErrorMessage(value = value, onValueChange = onValueChange, label = label)
+    TextFieldWithSpacerAndErrorMessage(value = value, onValueChange = onValueChange, label = label, isNumerical = isNumerical)
 }
 
 @Composable
@@ -178,11 +188,13 @@ fun TextFieldWithSpacerAndErrorMessage(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    errorMessage: String? = null
+    errorMessage: String? = null,
+    isNumerical : Boolean = false
 ){
     TextField(
         value = value,
         onValueChange = onValueChange,
+        keyboardOptions = if(isNumerical) KeyboardOptions(keyboardType = KeyboardType.Number) else KeyboardOptions.Default,
         label = { Text(label) },
         singleLine = true,
         supportingText = {

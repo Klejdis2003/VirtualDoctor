@@ -61,10 +61,10 @@ fun SignInScreen(
         contentAlignment = Alignment.Center
     ){
         Text(
-            text = "Google Authentication",
+            text = "Authentication",
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = 16.dp),
+                .padding(top = 40.dp, start = 16.dp, end = 16.dp),
             style = TextStyle(
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold
@@ -143,7 +143,6 @@ fun LogInBox(@FloatRange (0.0, 1.0) fraction: Float = 1F ,
     Box(modifier = Modifier
         .fillMaxWidth()
         .fillMaxHeight(fraction)
-        .padding(0.dp, 0.dp)
         .clickable(enabled = true,) { onClick() },
     ) {
         content()

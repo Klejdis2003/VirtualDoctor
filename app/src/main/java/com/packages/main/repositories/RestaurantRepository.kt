@@ -1,5 +1,6 @@
 package com.packages.main.repositories
 
+import com.packages.client.restaurant.Item
 import com.packages.client.restaurant.Restaurant
 import com.packages.main.utils.HttpRequestUtil
 
@@ -19,6 +20,11 @@ class RestaurantRepository {
             val restaurantJson = HttpRequestUtil.getJsonFromRequest("$BASE/$id")
             return if (restaurantJson == null) return null
             else HttpRequestUtil.json.decodeFromString<Restaurant>(restaurantJson)
+        }
+
+        suspend fun getMenu(restaurantId: Long): List<Item> {
+            val itemJson = HttpRequestUtil.getJsonFromRequest("$BASE/$restaurantId/menu")
+            return HttpRequestUtil.json.decodeFromString<List<Item>>(itemJson!!)
         }
     }
 }
