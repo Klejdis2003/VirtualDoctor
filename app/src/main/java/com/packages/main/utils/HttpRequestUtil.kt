@@ -12,12 +12,13 @@ import io.ktor.http.URLProtocol
 import io.ktor.http.content.TextContent
 import io.ktor.http.path
 import io.ktor.util.StringValues
+import io.ktor.util.valuesOf
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.util.Optional
 
 abstract class HttpRequestUtil {
     companion object{
-        private const val HOST= "192.168.39.242:8080"
+        private const val HOST= "192.168.0.164:8080"
 
         val json = Json { ignoreUnknownKeys = true }
         private val client = HttpClient()
@@ -26,14 +27,23 @@ abstract class HttpRequestUtil {
          * @param path the path of the request
          * @return HttpResponse object from the server
          */
-        private suspend fun makeGetRequest(path: String, params: Optional<StringValues>): HttpResponse{
+
+        suspend inline fun <reified T> get(path: String, params: StringValues = valuesOf(), body: Any? = null): T? {
+            return getJsonFromRequest(path, params, body)?.let { json.decodeFromString(it) }
+        }
+
+        suspend inline fun <reified T> post(path: String, bodyContent: String): T? {
+            return getJsonFromPostRequest(path, bodyContent)?.let { json.decodeFromString(it) }
+        }
+        private suspend fun makeGetRequest(path: String, params: StringValues, body: Any? = null): HttpResponse{
             val response: HttpResponse = client.get{
                         url{
                             protocol = URLProtocol.HTTP
                             host = HOST
                             path(path)
-                            if(params.isPresent)
-                                parameters.appendAll(params.get())
+                            parameters.appendAll(params)
+                            if(body != null)
+                                setBody(TextContent(text = json.encodeToString(body), contentType = ContentType.Application.Json))
                         }
             }
             return response
@@ -68,22 +78,18 @@ abstract class HttpRequestUtil {
             }
             return response
         }
-
-        suspend fun getJsonFromRequest(path: String): String? {
-            return getJsonFromRequest(path, Optional.empty())
-        }
-
         /**
          * Makes a GET request to the provided address.
          * @param path the path of the request
          * @return JSON string from the server
          */
-        suspend fun getJsonFromRequest(path: String, params: Optional<StringValues>): String?{
-            val response = makeGetRequest(path, params)
-            if (response.status.value == 200)
-                return response.body<String>()
-
-            return null
+        suspend fun getJsonFromRequest(path: String, params: StringValues = valuesOf(), body: Any? = null): String? {
+            val response = makeGetRequest(path, params, body)
+            return when (response.status.value) {
+                200 -> return response.body<String>()
+                500 -> throw Exception("Server error while fetching data")
+                else -> null
+            }
         }
 
         /**

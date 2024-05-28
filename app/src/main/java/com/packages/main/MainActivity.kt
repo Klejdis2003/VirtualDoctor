@@ -29,19 +29,22 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.google.android.gms.auth.api.identity.Identity
-import com.packages.client.AccountType
-import com.packages.client.restaurant.RestaurantOwner
-import com.packages.main.owner_profile.OwnerViewModel
-import com.packages.main.owner_profile.RestaurantOwnerScreen
-import com.packages.main.repositories.RestaurantOwnerRepository
-import com.packages.main.repositories.UserRepository
+import com.packages.data.model.AccountType
+import com.packages.data.model.restaurant.RestaurantOwner
+import com.packages.data.repositories.RestaurantOwnerRepository
+import com.packages.data.repositories.UserRepository
 import com.packages.main.sign_in.GoogleAuthUiClient
 import com.packages.main.sign_in.SignInScreen
 import com.packages.main.sign_in.SignInState
 import com.packages.main.sign_in.SignInViewModel
 import com.packages.main.ui.theme.VirtualDoctorTheme
-import com.packages.user_profile.HomeScreen
-import com.packages.user_profile.HomeViewModel
+import com.packages.main.utils.HttpClient
+import com.packages.ui.owner_profile.OwnerViewModel
+import com.packages.ui.owner_profile.RestaurantOwnerScreen
+import com.packages.ui.registration.UserRegistrationViewModel
+import com.packages.ui.registration.UserRegistrationViewModelFactory
+import com.packages.ui.user_profile.HomeScreen
+import com.packages.ui.user_profile.HomeViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -52,8 +55,11 @@ class MainActivity : ComponentActivity() {
             oneTapClient = Identity.getSignInClient(applicationContext)
         )
     }
+    private val httpClient = HttpClient()
     private var accountType: AccountType? = null
-
+    private lateinit var dependencyContainer: DependencyContainer
+    private lateinit var userRepository: UserRepository
+    private lateinit var restaurantOwnerRepository: RestaurantOwnerRepository
 
     /**
      * Launches the sign in flow. It first requests google sign in intent sender and then launches it.
@@ -74,10 +80,10 @@ class MainActivity : ComponentActivity() {
         runBlocking{
             launch{
                 try{
-                    if(accountType == AccountType.USER && !UserRepository.exists(email)){
+                    if(accountType == AccountType.USER && !userRepository.exists(email)){
                         navController.navigate("user_registration")
                     }
-                    else if(accountType == AccountType.RESTAURANT_OWNER && !RestaurantOwnerRepository.exists(email))
+                    else if(accountType == AccountType.RESTAURANT_OWNER && !restaurantOwnerRepository.exists(email))
                         state.sheetOpened = true
                 }catch (e: Exception){
                     e.printStackTrace()
@@ -87,12 +93,17 @@ class MainActivity : ComponentActivity() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        dependencyContainer = DependencyContainer()
+        userRepository = dependencyContainer.userRepository
+        restaurantOwnerRepository = dependencyContainer.restaurantOwnerRepository
+
         enableEdgeToEdge()
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
         insetsController.apply {
             hide(WindowInsetsCompat.Type.statusBars())
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
+
         runBlocking {
             launch {
                 try {
@@ -100,9 +111,9 @@ class MainActivity : ComponentActivity() {
                         return@launch
 
                     accountType =
-                        if (UserRepository.exists(googleAuthUiClient.getSignedInUser()?.email)) {
+                        if (userRepository.exists(googleAuthUiClient.getSignedInUser()?.email)) {
                             AccountType.USER
-                        } else if (RestaurantOwnerRepository.exists(googleAuthUiClient.getSignedInUser()?.email)) {
+                        } else if (restaurantOwnerRepository.exists(googleAuthUiClient.getSignedInUser()?.email)) {
                             AccountType.RESTAURANT_OWNER
                         } else {
                             null
@@ -144,7 +155,11 @@ class MainActivity : ComponentActivity() {
                                                             intent = result.data ?: return@launch,
                                                             onSignInComplete = { email ->
                                                                 if (email != null) {
-                                                                    checkIfUserIsRegisteredOnSignIn(email, navController, state)
+                                                                    checkIfUserIsRegisteredOnSignIn(
+                                                                        email,
+                                                                        navController,
+                                                                        state
+                                                                    )
                                                                 }
                                                             }
                                                         )
@@ -163,8 +178,10 @@ class MainActivity : ComponentActivity() {
                                             ).show()
                                             if (accountType == AccountType.USER)
                                                 navController.navigate("home")
-
-                                            else if (accountType == AccountType.RESTAURANT_OWNER && RestaurantOwnerRepository.exists(googleAuthUiClient.getSignedInUser()?.email!!))
+                                            else if (accountType == AccountType.RESTAURANT_OWNER && restaurantOwnerRepository.exists(
+                                                    googleAuthUiClient.getSignedInUser()?.email!!
+                                                )
+                                            )
                                                 navController.navigate("owner_home")
                                             viewModel.resetState(isSheetOpened = state.sheetOpened)
                                         }
@@ -182,7 +199,7 @@ class MainActivity : ComponentActivity() {
                                         onRestaurantOwnerRegistrationClick = { name ->
 
                                             lifecycleScope.launch {
-                                                RestaurantOwnerRepository.createRestaurantOwner(
+                                                restaurantOwnerRepository.createRestaurantOwner(
                                                     RestaurantOwner(
                                                         username = name,
                                                         email = googleAuthUiClient.getSignedInUser()?.email!!
@@ -199,24 +216,58 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                                 composable("user_registration") {
-                                    UserRegistrationForm(
-                                        googleAuthUiClient.getSignedInUser()!!.email,
-                                        onRegistered = {
-                                            navController.navigate("home")
-                                            Toast.makeText(
-                                                applicationContext,
-                                                "Registration successful",
-                                                Toast.LENGTH_LONG
-                                            ).show()
-                                        })
+                                    val userRegistrationViewModel =
+                                        viewModel<UserRegistrationViewModel>(
+                                            factory = UserRegistrationViewModelFactory(
+                                                email = googleAuthUiClient.getSignedInUser()?.email!!,
+                                                userRepository = userRepository,
+                                                nutritionRepository = dependencyContainer.nutritionRepository,
+                                                redirect = { navController.navigate("home") }
+                                            )
+                                        )
+                                    UserRegistrationForm(userRegistrationViewModel)
                                 }
-                            }
-                            composable("home") {
-                                val loggedInEmail = googleAuthUiClient.getSignedInUser()?.email
-                                HomeScreen(
-                                    onSignOut = {
+                                composable("home") {
+                                    val loggedInEmail = googleAuthUiClient.getSignedInUser()?.email
+                                    runBlocking {
+                                        val actualUser = if (loggedInEmail != null) userRepository.get(loggedInEmail) else null
+                                        if (actualUser == null) {
+                                            navController.navigate("auth")
+                                        }
+                                    }
+                                    HomeScreen(
+                                        onSignOut = {
+                                            lifecycleScope.launch {
+                                                googleAuthUiClient.signOut()
+                                                Toast.makeText(
+                                                    applicationContext,
+                                                    "Signed out",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                                navController.navigate("auth")
+                                            }
+                                        },
+                                        homeViewModel = HomeViewModel(
+                                            loggedInEmail,
+                                            dependencyContainer.userRepository,
+                                            dependencyContainer.restaurantRepository,
+                                            dependencyContainer.itemRepository
+                                        )
+                                    )
+                                }
+
+
+                                composable("owner_home") {
+                                    val email = googleAuthUiClient.getSignedInUser()?.email
+                                    if (email == null) {
+                                        navController.navigate("auth")
+                                        return@composable
+                                    }
+                                    val viewModel = OwnerViewModel(email, restaurantOwnerRepository, dependencyContainer.restaurantRepository)
+                                    RestaurantOwnerScreen(ownerViewModel = viewModel, onSignOut = {
                                         lifecycleScope.launch {
                                             googleAuthUiClient.signOut()
+
                                             Toast.makeText(
                                                 applicationContext,
                                                 "Signed out",
@@ -224,40 +275,16 @@ class MainActivity : ComponentActivity() {
                                             ).show()
                                             navController.navigate("auth")
                                         }
-                                    },
-                                    homeViewModel = HomeViewModel(loggedInEmail)
-                                )
-                            }
-
-
-                            composable("owner_home") {
-                                val email = googleAuthUiClient.getSignedInUser()?.email
-                                if (email == null) {
-                                    navController.navigate("auth")
-                                    return@composable
+                                    })
                                 }
-                                val viewModel = OwnerViewModel(email)
-                                RestaurantOwnerScreen(ownerViewModel = viewModel, onSignOut = {
-                                    lifecycleScope.launch {
-                                        googleAuthUiClient.signOut()
 
-                                        Toast.makeText(
-                                            applicationContext,
-                                            "Signed out",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                        navController.navigate("auth")
-                                    }
-                                })
                             }
-
                         }
                     }
                 }
             }
         }
     }
-
 }
 
 
