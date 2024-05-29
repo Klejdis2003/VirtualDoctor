@@ -134,10 +134,7 @@ fun RestaurantOwnerScreen(ownerViewModel: OwnerViewModel, onSignOut: () -> Unit 
                         ownerViewModel.owner,
                         ownerViewModel.restaurantRepository,
                         redirect = {
-                            navController.navigate(OwnerScreenRoutes.Home.route) {
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            navController.navigate(OwnerScreenRoutes.Home.route)
                             ownerViewModel.updateState()
                         }
                     )
