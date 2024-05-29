@@ -18,8 +18,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -99,10 +97,10 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-        insetsController.apply {
-            hide(WindowInsetsCompat.Type.statusBars())
-            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
+//        insetsController.apply {
+//            hide(WindowInsetsCompat.Type.statusBars())
+//            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+//        }
 
         runBlocking {
             launch {
@@ -229,12 +227,6 @@ class MainActivity : ComponentActivity() {
                                 }
                                 composable("home") {
                                     val loggedInEmail = googleAuthUiClient.getSignedInUser()?.email
-                                    runBlocking {
-                                        val actualUser = if (loggedInEmail != null) userRepository.get(loggedInEmail) else null
-                                        if (actualUser == null) {
-                                            navController.navigate("auth")
-                                        }
-                                    }
                                     HomeScreen(
                                         onSignOut = {
                                             lifecycleScope.launch {
@@ -251,8 +243,16 @@ class MainActivity : ComponentActivity() {
                                             loggedInEmail,
                                             dependencyContainer.userRepository,
                                             dependencyContainer.restaurantRepository,
-                                            dependencyContainer.itemRepository
-                                        )
+                                            dependencyContainer.itemRepository,
+                                            onNullUser = {
+                                                navController.navigate("auth")
+                                                Toast.makeText(
+                                                    applicationContext,
+                                                    "An error occurred. Please sign in again.",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            }
+                                        ),
                                     )
                                 }
 
@@ -263,7 +263,10 @@ class MainActivity : ComponentActivity() {
                                         navController.navigate("auth")
                                         return@composable
                                     }
-                                    val viewModel = OwnerViewModel(email, restaurantOwnerRepository, dependencyContainer.restaurantRepository)
+                                    val viewModel = OwnerViewModel(email,
+                                        restaurantOwnerRepository,
+                                        dependencyContainer.restaurantRepository,
+                                        dependencyContainer.itemRepository)
                                     RestaurantOwnerScreen(ownerViewModel = viewModel, onSignOut = {
                                         lifecycleScope.launch {
                                             googleAuthUiClient.signOut()

@@ -7,7 +7,8 @@ data class OwnerHomeScreenState(
     val ownerData: RestaurantOwner? = null,
     var loading: Boolean = true,
     var error: OwnerHomeScreenError? = null,
-    val restaurants: List<Restaurant> = emptyList()
+    val restaurants: List<Restaurant> = emptyList(),
+    val clickedRestaurant: Restaurant? = null,
 )
 
 enum class OwnerHomeScreenEvent {

@@ -2,7 +2,9 @@ package com.packages.ui.owner_profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.packages.data.model.restaurant.Restaurant
 import com.packages.data.model.restaurant.RestaurantOwner
+import com.packages.data.repositories.ItemRepository
 import com.packages.data.repositories.RestaurantOwnerRepository
 import com.packages.data.repositories.RestaurantRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +14,8 @@ import kotlinx.coroutines.launch
 class OwnerViewModel(
     private val ownerEmail: String,
     private val restaurantOwnerRepository: RestaurantOwnerRepository,
-    val restaurantRepository: RestaurantRepository
+    val restaurantRepository: RestaurantRepository,
+    val itemRepository: ItemRepository
 ): ViewModel() {
     private val _state = MutableStateFlow(OwnerHomeScreenState())
     val state = _state.asStateFlow()
@@ -39,5 +42,11 @@ class OwnerViewModel(
             _state.value.error = OwnerHomeScreenError.RESTAURANT_DATA_NULL
         }
     }
+
+    fun onRestaurantClick(restaurant: Restaurant) {
+        _state.value = _state.value.copy(clickedRestaurant = restaurant)
+    }
+
+
 
 }

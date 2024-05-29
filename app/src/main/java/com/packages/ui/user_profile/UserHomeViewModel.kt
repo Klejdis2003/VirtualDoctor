@@ -17,7 +17,8 @@ class HomeViewModel(
     userEmail: String?,
     private val userRepository: UserRepository,
     val restaurantRepository: RestaurantRepository,
-    val itemRepository: ItemRepository
+    val itemRepository: ItemRepository,
+    val onNullUser : () -> Unit = {}
     ): ViewModel()  {
 
     private var _state = MutableStateFlow(UserHomeScreenState())
@@ -39,6 +40,7 @@ class HomeViewModel(
                 try {
                     val user = userRepository.get(userEmail)
                     _state.value = _state.value.copy(user = user)
+                    if (user == null) onNullUser()
                 } catch (e: Exception) {
                     Log.w("HomeViewModel", "Error while fetching data: ${e.message}")
                 }

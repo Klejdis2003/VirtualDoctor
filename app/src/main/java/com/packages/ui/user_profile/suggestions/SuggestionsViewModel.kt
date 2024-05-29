@@ -5,23 +5,30 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.packages.data.model.nutrition.NutritionPlan
 import com.packages.data.model.nutrition.NutritionType
+import com.packages.data.model.restaurant.Item
 import com.packages.data.repositories.ItemRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class SuggestionsViewModel(userNutritionType: NutritionType, userNutritionPlan: NutritionPlan, itemRepository: ItemRepository): ViewModel() {
-    private var _state = MutableStateFlow(SuggestionsState())
+class SuggestionsViewModel(
+    private val userNutritionType: NutritionType,
+    val userNutritionPlan: NutritionPlan,
+    private val itemRepository: ItemRepository,
+    val onAddButtonClicked: (item: Item) -> Unit = {}
+    ): ViewModel() {
+    private var _state = MutableStateFlow(SuggestionsState(userNutritionType = userNutritionType.name))
     var state = _state.asStateFlow()
 
+
     init {
+        updateState()
+    }
+
+    fun updateState() {
         viewModelScope.launch {
-            try {
-                val itemSuggestions = itemRepository.filterByNutritionType(userNutritionType.name)
-                _state.value = _state.value.copy(itemSuggestions = itemSuggestions)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            val items = itemRepository.filterByNutritionType(userNutritionType.name)
+            _state.value = _state.value.copy(itemSuggestions = items)
         }
     }
 }
@@ -29,10 +36,12 @@ class SuggestionsViewModel(userNutritionType: NutritionType, userNutritionPlan: 
 class SuggestionsViewModelFactory(
     private val userNutritionType: NutritionType,
     private val userNutritionPlan: NutritionPlan,
-    private val itemRepository: ItemRepository) : ViewModelProvider.Factory{
+    private val itemRepository: ItemRepository,
+    private val onAddButtonClicked: (item: Item) -> Unit = {}
+    ) : ViewModelProvider.Factory{
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SuggestionsViewModel::class.java)) {
-            return SuggestionsViewModel(userNutritionType, userNutritionPlan, itemRepository) as T
+            return SuggestionsViewModel(userNutritionType, userNutritionPlan, itemRepository, onAddButtonClicked) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

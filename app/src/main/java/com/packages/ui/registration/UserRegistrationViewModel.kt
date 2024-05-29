@@ -33,6 +33,7 @@ class UserRegistrationViewModel(
             launch {
                 _nutritionTypes = nutritionRepository.getAllNutritionTypes()
                 _nutritionPlans = nutritionRepository.getAllNutritionPlans()
+                Log.w("UserRegistrationViewModel", "init: $_nutritionTypes")
             }
         }
         initFields()
@@ -83,6 +84,12 @@ class UserRegistrationViewModel(
     fun onFormSubmit() {
         val state = _state.value
         viewModelScope.launch {
+            val nutritionType = _nutritionTypes.find { it.name == state.selectedNutritionType }
+            val nutritionPlan = _nutritionPlans.find { it.name == state.selectedNutritionPlan }
+            if(nutritionType == null || nutritionPlan == null) {
+                Log.e("UserRegistrationViewModel", "Nutrition Type Name: ${state.selectedNutritionType}")
+                return@launch
+            }
             userRepository.createUser(
                 User(
                     email = email,
@@ -90,8 +97,8 @@ class UserRegistrationViewModel(
                     age = state.age!!,
                     height = state.height!!,
                     weight = state.weight!!,
-                    nutritionType = _nutritionTypes.find { it.name == state.selectedNutritionType }!!,
-                    nutritionPlan = _nutritionPlans.find { it.name == state.selectedNutritionPlan }!!
+                    nutritionType = nutritionType,
+                    nutritionPlan = nutritionPlan
                 )
             )
         }

@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Item(
-    val id: Long,
+    val id: Long = 0,
     val name: String,
     val description: String,
     val imageUrl: String,

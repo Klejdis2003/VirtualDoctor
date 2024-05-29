@@ -1,5 +1,6 @@
 package com.packages.data.repositories
 
+import com.packages.data.model.restaurant.Ingredient
 import com.packages.data.model.restaurant.Item
 import com.packages.main.utils.HttpClient
 import io.ktor.util.StringValues
@@ -18,6 +19,12 @@ class ItemRepository(private val httpClient: HttpClient = HttpClient()) {
         return getAll(StringValues.build {
             append("nutritionType", nutritionType)
         })
+    }
+
+    suspend fun searchIngredients(query: String): List<Ingredient> {
+        return httpClient.get("$base/ingredients", StringValues.build {
+            append("name", query)
+        })!!
     }
 
 }

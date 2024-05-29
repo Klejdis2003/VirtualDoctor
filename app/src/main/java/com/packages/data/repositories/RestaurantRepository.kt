@@ -19,6 +19,9 @@ class RestaurantRepository(private val httpClient: HttpClient = HttpClient()) {
         return httpClient.get("$base/$restaurantId/menu")!!
     }
 
+    suspend fun addItemToMenu(restaurantId: Long, item: Item): List<Item> {
+        return httpClient.postWithDifferentResponseType<Item, List<Item>>("$base/$restaurantId/menu", item)!!
+    }
     suspend fun create(restaurant: Restaurant): Restaurant? {
         return httpClient.post(base, restaurant)
     }

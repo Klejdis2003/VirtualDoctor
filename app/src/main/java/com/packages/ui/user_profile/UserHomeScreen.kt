@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,9 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -70,16 +68,18 @@ fun HomeScreen(
             homeViewModel.onStatsToastDismissed()
         }
         CenterAlignedTopAppBar(title = {
-           userData?.let {
-               Text(text = it.username)
-           }}
+            userData?.let {
+                Text(text = it.username)
+            }
+        },
+
         )
         if (state.loading)
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
 
         BottomAppBar(
             actions = {
-                      items.forEach() {
+                      items.forEach {
                           IconButton(onClick = {
                                 navController.navigate(it.route)
                           }) {
@@ -117,10 +117,13 @@ fun HomeScreen(
                     SuggestionsViewModelFactory(
                         userNutritionType = it.nutritionType,
                         userNutritionPlan = it.nutritionPlan,
-                        itemRepository = homeViewModel.itemRepository
+                        itemRepository = homeViewModel.itemRepository,
+                        onAddButtonClicked = { item -> homeViewModel.onAddButtonPressed(item) }
                     )
                 })
-                Suggestions(suggestionsViewModel)
+                Suggestions(suggestionsViewModel, modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.8F))
             }
             navigation(route = UserScreen.Home.route, startDestination = "restaurantList") {
 
@@ -128,12 +131,9 @@ fun HomeScreen(
                     RestaurantList(restaurants = state.restaurants, onRestaurantClick = {
                         homeViewModel.onRestaurantClicked(it)
                         navController.navigate("restaurantDetails") {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-
-                            }
                             launchSingleTop = true
                             restoreState = true
+
                         }
                     })
                 }
@@ -159,20 +159,12 @@ fun RestaurantList(
     restaurants: List<Restaurant>,
     onRestaurantClick : (Restaurant) -> Unit = {}
 ) {
-    var cardExpanded by remember { mutableStateOf("") }
     Column(
         modifier = modifier
             .fillMaxWidth()
             .size(600.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = "Restaurants you might like: ",
-            modifier = Modifier
-                .padding(8.dp)
-                .align(Alignment.Start),
-            fontSize = MaterialTheme.typography.headlineMedium.fontSize
-        )
         restaurants.forEach {
             Card(modifier = Modifier
                 .padding(8.dp)

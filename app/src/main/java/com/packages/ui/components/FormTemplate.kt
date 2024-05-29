@@ -3,7 +3,6 @@ package com.packages.ui.components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
@@ -24,10 +23,11 @@ fun FormTemplate(
     onChanged: (String, String) -> Unit = { _, _ -> },
     isValid : Boolean = true,
     formErrors: List<String> = emptyList(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    buttonText: String = "Submit"
 ) {
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -59,7 +59,7 @@ fun FormTemplate(
             }
 
             Button(onClick = { onSubmit() }, enabled = isValid) {
-                Text("Register")
+                Text(text = buttonText)
             }
             Text(text = "Fields marked with * are required")
 
